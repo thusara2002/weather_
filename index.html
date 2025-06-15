@@ -75,7 +75,8 @@
     </div>
   </div>
   <script>
-    const apiKey = '4cbe55f1b22247b598f40955251506';
+    // Replace with your valid OpenWeatherMap API key
+    const apiKey = '29d557e6ffb10f61077ee7e1c0801a53'; // Ensure this is a valid 32-character key
 
     async function getWeather() {
       const city = document.getElementById('city').value.trim();
@@ -87,15 +88,28 @@
 
       if (!city) {
         alert('Please enter a city name');
+        weatherCard.classList.add('hidden');
+        return;
+      }
+
+      if (!apiKey || apiKey.length !== 32) {
+        alert('Invalid API key. Please check your OpenWeatherMap API key.');
+        weatherCard.classList.add('hidden');
         return;
       }
 
       try {
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`
         );
         if (!response.ok) {
-          throw new Error('City not found or API error');
+          if (response.status === 404) {
+            throw new Error('City not found. Please check the city name.');
+          } else if (response.status === 401) {
+            throw new Error('Invalid API key. Please verify your OpenWeatherMap API key.');
+          } else {
+            throw new Error(`API error: ${response.statusText}`);
+          }
         }
 
         const data = await response.json();
